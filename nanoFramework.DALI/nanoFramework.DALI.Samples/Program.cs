@@ -1,23 +1,23 @@
 using System;
+using System.Collections;
 using System.Diagnostics;
 using System.Threading;
+using nanoFramework.DALI;
 
 namespace nanoFramework.DALI.Samples
 {
     public class Program
     {
         public static void Main()
-        {
-            Debug.WriteLine("Hello from nanoFramework!");
+        {          
+            var daliMaster = new DaliMaster(19,18);
+            daliMaster.TransmitContolCommand(0xFF, DALICommands.DALI_CMD_OFF);
+            Thread.Sleep(5000);
+            daliMaster.TransmitContolCommand(0xFF, DALICommands.DALI_CMD_MAX_LEVEL);
+            Thread.Sleep(5000);
 
-         
-            // Browse our samples repository: https://github.com/nanoframework/samples
-            // Check our documentation online: https://docs.nanoframework.net/
-            // Join our lively Discord community: https://discord.gg/gCyBu8T
-
-            var daliMaster = new DaliMaster();
-
-          var i2cCount = daliMaster.ScanI2cBus(1);
-        }
+            var data = daliMaster.TransmitQueryCommand (0xFF, DALICommands.DALI_CMD_QUERY_STATUS);
+            Thread.Sleep(5000);
+        }        
     }
 }

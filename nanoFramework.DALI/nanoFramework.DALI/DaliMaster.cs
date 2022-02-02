@@ -1,71 +1,130 @@
 ﻿using nanoFramework.Hardware.Esp32;
+using nanoFramework.Hardware.Esp32.Rmt;
 using System;
-using System.Device.I2c;
+using System.Collections;
 using System.Diagnostics;
+using System.Threading;
 
 namespace nanoFramework.DALI
 {
     public class DaliMaster
     {
-        private readonly I2cDevice Wire;
+        ReceiverChannel rxChannel;
+        TransmitterChannel txChannel;
 
-        public DaliMaster()
+        RmtCommand txPulse1;
+        RmtCommand txPulse0;
+
+        private int txPin;
+        private int rxPin;
+
+        //         DALI commands have a length of 16 bits and two values in the data field: address and
+        //         opcode[IEC62386 - 102].
+
+        //        DALI-2 commands have a length of 24 bits and three values in the data field: address,
+        //        instance byte and opcode[IEC62386 - 103].
+
+        //         Answers have a length of 8 bits, a single value in the data field: the answer of the device
+        //         [IEC62386 - 102]
+
+        public DaliMaster(int TxPin, int RxPin)
         {
-            Configuration.SetPinFunction(Gpio.IO22, DeviceFunction.I2C1_CLOCK);
-         //   Configuration.SetPinFunction(Gpio.IO22, DeviceFunction.I2C1_DATA);
-
-            Configuration.SetPinFunction(Gpio.IO21, DeviceFunction.I2C1_DATA);
-          //  Configuration.SetPinFunction(Gpio.IO21, DeviceFunction.I2C1_CLOCK);
-        }
-
-        public DaliMaster(byte I2cBus = 1, byte ModuleAddress = 0x20)
-        {
-
-        }
-
-        public byte ScanI2cBus(int I2cBus)
-        {
-            byte numDev = 0;
-
-            Configuration.SetPinFunction(Gpio.IO21, DeviceFunction.I2C1_DATA);
-            Configuration.SetPinFunction(Gpio.IO22, DeviceFunction.I2C1_CLOCK);          
+            txPin = TxPin;
+            rxPin = RxPin;
            
-            
+            txPulse0 = new RmtCommand(416, true, 416, false);
+            txPulse1 = new RmtCommand(416, false, 416, true);
+        }
 
-            var buffer = new byte[6];
-            //var scanI2cDevice1 = I2cDevice.Create(new I2cConnectionSettings(1, 0X20, I2cBusSpeed.FastMode));
-            //var result11 = scanI2cDevice1.WriteByte(0xF0);
-            //var result21 = scanI2cDevice1.Read(buffer);
+        private void SetTxChannel()
+        {
+            txChannel = new TransmitterChannel(txPin);
+            txChannel.ClockDivider = 80;
+            txChannel.CarrierEnabled = false;            
+            txChannel.IdleLevel = true; 
+        }
 
-            for (byte address = 1; address < 127; address++)
-            {
+        private void SetRxChannel()
+        {
+            rxChannel = new ReceiverChannel(rxPin);
+            rxChannel.ClockDivider = 80; // 1us clock ( 80Mhz / 80 ) = 1Mhz
+            rxChannel.EnableFilter(true, 100); // filter out 100Us / noise 
+            rxChannel.SetIdleThresold(40000);  // 40ms based on 1us clock
+            rxChannel.ReceiveTimeout = new TimeSpan(0, 0, 0, 0, 60);
+        }
 
+        public void TransmitContolCommand(byte Address,byte Command)
+        {
+            SetTxChannel();
+            SetBit(1); //Start bit
+            SetByte(Address);
+            SetByte(Command);        
+            txChannel.Send(false);
+        }
 
-                var scanI2cDevice = I2cDevice.Create(new I2cConnectionSettings(I2cBus, address, I2cBusSpeed.StandardMode));
-              
-                  
-                
-                var result = scanI2cDevice.WriteRead(new byte[] { 0xF0 }, buffer);
+        public void TransmitConfigurationCommand(byte Address, byte Command)
+        {
+            SetTxChannel();
 
-                //var result = scanI2cDevice.WriteByte(0xF0);
-                //var result2 = scanI2cDevice.Read(buffer);
-                
+            SetBit(1); //Start bit
 
+            SetByte(Address);
+            SetByte(Command);
+            txChannel.Send(false);
 
-                //Wire.requestFrom(address, 1);
-                //     scanI2cDevice.
+            Thread.Sleep(30);
 
-                // Debug.WriteLine(address + " " + result.Status.ToString());
-                //Debug.WriteLine(address + " " + buffer[0].ToString()+":" + buffer[1].ToString() + ":" + buffer[2].ToString() + ":" + buffer[3].ToString() + ":" + buffer[4].ToString() + ":" + buffer[5].ToString());
-                Debug.WriteLine(address + " " + buffer[0].ToString() + ":" + buffer[1].ToString() + ":" + buffer[2].ToString() + ":" + buffer[3].ToString() + ":" + buffer[4].ToString() + ":" + buffer[5].ToString());
+            txChannel.Send(false);
+        }
 
-                if (result.Status==I2cTransferStatus.FullTransfer || result.Status == I2cTransferStatus.PartialTransfer)
-                {
-                    numDev++;
-                }
+        public byte TransmitQueryCommand(byte Address, byte Command)
+        {
+            byte answerData = 0;
+
+            RmtCommand[] response = null;
+
+            SetRxChannel();
+            SetBit(1); //Start bit
+            SetByte(Address);
+            SetByte(Command);
+
+            rxChannel.Start(true);
+            txChannel.Send(false);
+
+            for(int count = 0; count < 5; count++)
+			{
+                response = rxChannel.GetAllItems();
+                if (response != null)
+                    break;
+
+                // Retry every 60 ms
+                Thread.Sleep(60);
             }
 
-            return numDev;
+         
+            rxChannel.Stop();
+
+            return answerData;
         }
+     
+        private void SetByte(byte Packet)
+        {
+            for (int i = 7; i >= 0; i--)
+            {
+                SetBit((Packet >> i) & 1);
+            }
+        }
+
+        private void SetBit(int Bit)
+        {
+            if (Bit==1)
+            {
+                txChannel.AddCommand(txPulse1);
+            }
+            else
+            {
+                txChannel.AddCommand(txPulse0);
+            }
+        }     
     }
 }

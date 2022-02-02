@@ -4568,6 +4568,18 @@
             Used in COM interop to specify that the return value of the member can be ignored.
             </summary>
         </member>
+        <member name="T:System.Reflection.ParameterInfo">
+            <summary>
+            Discovers the attributes of a parameter and provides access to parameter metadata.
+            </summary>
+            <remarks>Available only in mscorlib build with support for System.Reflection.</remarks>
+        </member>
+        <member name="P:System.Reflection.ParameterInfo.ParameterType">
+            <summary>
+            Gets the <see cref="T:System.Type"/> of this parameter.
+            </summary>
+            <value>The <see cref="T:System.Type"/> object that represents the <see cref="T:System.Type"/> of this parameter.</value>
+        </member>
         <member name="T:System.Reflection.ConstructorInfo">
             <summary>
             Discovers the attributes of a class constructor and provides access to constructor metadata.
@@ -4821,6 +4833,12 @@
             <value>
             true if this method is abstract; otherwise, false.
             </value>
+        </member>
+        <member name="M:System.Reflection.MethodBase.GetParameters">
+            <summary>
+            When overridden in a derived class, gets the parameters of the specified method or constructor.
+            </summary>
+            <returns>An array of type <see cref="T:System.Reflection.ParameterInfo"/> containing information that matches the signature of the method (or constructor) reflected by this <see cref="T:System.Reflection.MethodBase"/> instance.</returns>
         </member>
         <member name="M:System.Reflection.MethodBase.Invoke(System.Object,System.Object[])">
             <summary>
@@ -7096,6 +7114,14 @@
             <para>An empty array of Type objects, to get a constructor that takes no parameters.Such an empty array is provided by the static field Type.EmptyTypes.</para>
             </param>
             <returns>An object representing the public instance constructor whose parameters match the types in the parameter type array, if found; otherwise, null.</returns>
+        </member>
+        <member name="M:System.Type.GetConstructors">
+            <summary>
+            Returns all the public constructors defined for the current <see cref="T:System.Type"/>.
+            </summary>
+            <returns>
+            An array of <see cref="T:System.Reflection.ConstructorInfo"/> objects representing all the public instance constructors defined for the current <see cref="T:System.Type"/>, but not including the type initializer (static constructor). If no public instance constructors are defined for the current <see cref="T:System.Type"/>, or if the current <see cref="T:System.Type"/> represents a type parameter in the definition of a generic type or generic method, an empty array of type <see cref="T:System.Reflection.ConstructorInfo"/> is returned.
+            </returns>
         </member>
         <member name="M:System.Type.GetMethod(System.String,System.Type[])">
             <summary>
