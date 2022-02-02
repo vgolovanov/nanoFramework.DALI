@@ -32,3 +32,4 @@ D:\Github\github-vgolovanov\nanoFramework.DALI\nanoFramework.DALI\obj\Debug\msco
 D:\Github\github-vgolovanov\nanoFramework.DALI\nanoFramework.DALI\obj\Debug\nanoFramework.Hardware.Esp32.xml
 D:\Github\github-vgolovanov\nanoFramework.DALI\nanoFramework.DALI\obj\Debug\nanoFramework.Hardware.Esp32.Rmt.xml
 D:\Github\github-vgolovanov\nanoFramework.DALI\nanoFramework.DALI\obj\Debug\nanoFramework.Runtime.Events.xml
+D:\Github\github-vgolovanov\nanoFramework.DALI\nanoFramework.DALI\obj\Debug\nanoFramework.DALI.nfproj.AssemblyReference.cache

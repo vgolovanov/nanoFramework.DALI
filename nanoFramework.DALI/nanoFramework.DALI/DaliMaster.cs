@@ -48,8 +48,8 @@ namespace nanoFramework.DALI
         {
             rxChannel = new ReceiverChannel(rxPin);
             rxChannel.ClockDivider = 80; // 1us clock ( 80Mhz / 80 ) = 1Mhz
-            rxChannel.EnableFilter(true, 100); // filter out 100Us / noise 
-            rxChannel.SetIdleThresold(40000);  // 40ms based on 1us clock
+          //  rxChannel.EnableFilter(true, 100); // filter out 100Us / noise 
+            rxChannel.SetIdleThresold(900);  // 40ms based on 1us clock
             rxChannel.ReceiveTimeout = new TimeSpan(0, 0, 0, 0, 60);
         }
 
@@ -59,23 +59,23 @@ namespace nanoFramework.DALI
             SetBit(1); //Start bit
             SetByte(Address);
             SetByte(Command);        
-            txChannel.Send(false);
+            txChannel.Send(true);
         }
 
-        public void TransmitConfigurationCommand(byte Address, byte Command)
-        {
-            SetTxChannel();
+        //public void TransmitConfigurationCommand(byte Address, byte Command)
+        //{
+        //    SetTxChannel();
 
-            SetBit(1); //Start bit
+        //    SetBit(1); //Start bit
 
-            SetByte(Address);
-            SetByte(Command);
-            txChannel.Send(false);
+        //    SetByte(Address);
+        //    SetByte(Command);
+        //    txChannel.Send(false);
 
-            Thread.Sleep(30);
+        //    Thread.Sleep(10);
 
-            txChannel.Send(false);
-        }
+        //    txChannel.Send(false);
+        //}
 
         public byte TransmitQueryCommand(byte Address, byte Command)
         {
@@ -88,14 +88,37 @@ namespace nanoFramework.DALI
             SetByte(Address);
             SetByte(Command);
 
+          
             rxChannel.Start(true);
             txChannel.Send(false);
 
-            for(int count = 0; count < 5; count++)
+            Thread.Sleep(60);
+
+            for (int count = 0; count < 5; count++)
 			{
                 response = rxChannel.GetAllItems();
                 if (response != null)
+                {
+                    if (response.Length != 9)                        
+                    {
+                        Debug.WriteLine("Wrong!");
+                    }
+                    else
+                    {
+                        int respValue = 0;
+
+                        for(byte i=1; i < 9; i++)
+                        {
+                            if (response[i].Level0 == false || response[i].Level1 == true)
+                            {
+                                respValue = respValue | (1 << (i - 1));
+                            }                                
+                        }                                              
+                    }
+
                     break;
+                }
+
 
                 // Retry every 60 ms
                 Thread.Sleep(60);
