@@ -2,6 +2,7 @@
 using nanoFramework.Hardware.Esp32.Rmt;
 using System;
 using System.Collections;
+using System.Device.Gpio;
 using System.Diagnostics;
 using System.Threading;
 
@@ -18,6 +19,8 @@ namespace nanoFramework.DALI
         private int txPin;
         private int rxPin;
 
+        private int rmtCmdIndex = 0;
+
         //         DALI commands have a length of 16 bits and two values in the data field: address and
         //         opcode[IEC62386 - 102].
 
@@ -26,14 +29,18 @@ namespace nanoFramework.DALI
 
         //         Answers have a length of 8 bits, a single value in the data field: the answer of the device
         //         [IEC62386 - 102]
+   
+
 
         public DaliMaster(int TxPin, int RxPin)
         {
             txPin = TxPin;
             rxPin = RxPin;
-           
-            txPulse0 = new RmtCommand(416, true, 416, false);
+
             txPulse1 = new RmtCommand(416, false, 416, true);
+            txPulse0 = new RmtCommand(416, true, 416, false);
+
+            SetTxChannel();
         }
 
         private void SetTxChannel()
@@ -41,7 +48,13 @@ namespace nanoFramework.DALI
             txChannel = new TransmitterChannel(txPin);
             txChannel.ClockDivider = 80;
             txChannel.CarrierEnabled = false;            
-            txChannel.IdleLevel = true; 
+            txChannel.IdleLevel = true;
+
+            while (rmtCmdIndex < 17)
+            {
+                txChannel.AddCommand(new RmtCommand(416, true, 416, false));
+                rmtCmdIndex++;
+            }        
         }
 
         private void SetRxChannel()
@@ -49,38 +62,37 @@ namespace nanoFramework.DALI
             rxChannel = new ReceiverChannel(rxPin);
             rxChannel.ClockDivider = 80; // 1us clock ( 80Mhz / 80 ) = 1Mhz
           //  rxChannel.EnableFilter(true, 100); // filter out 100Us / noise 
-            rxChannel.SetIdleThresold(900);  // 40ms based on 1us clock
+        //    rxChannel.SetIdleThresold(400);  // 40ms based on 1us clock
             rxChannel.ReceiveTimeout = new TimeSpan(0, 0, 0, 0, 60);
         }
 
         public void TransmitContolCommand(byte Address,byte Command)
         {
-            SetTxChannel();
+            rmtCmdIndex = 0;       
             SetBit(1); //Start bit
             SetByte(Address);
             SetByte(Command);        
             txChannel.Send(true);
+
+
         }
 
-        //public void TransmitConfigurationCommand(byte Address, byte Command)
-        //{
-        //    SetTxChannel();
+        public void TransmitConfigurationCommand(byte Address, byte Command)
+        {
+            rmtCmdIndex = 0;       
+            SetBit(1); //Start bit
+            SetByte(Address);
+            SetByte(Command);
 
-        //    SetBit(1); //Start bit
-
-        //    SetByte(Address);
-        //    SetByte(Command);
-        //    txChannel.Send(false);
-
-        //    Thread.Sleep(10);
-
-        //    txChannel.Send(false);
-        //}
+            txChannel.Send(true);
+            Thread.Sleep(10);
+            txChannel.Send(true);
+        }
 
         public byte TransmitQueryCommand(byte Address, byte Command)
         {
-            byte answerData = 0;
-
+            rmtCmdIndex = 0;
+            byte answerData = 0;     
             RmtCommand[] response = null;
 
             SetRxChannel();
@@ -88,11 +100,12 @@ namespace nanoFramework.DALI
             SetByte(Address);
             SetByte(Command);
 
-          
             rxChannel.Start(true);
-            txChannel.Send(false);
+            txChannel.Send(true);
 
-            Thread.Sleep(60);
+         //   Thread.Sleep(60);
+
+            
 
             for (int count = 0; count < 5; count++)
 			{
@@ -118,15 +131,10 @@ namespace nanoFramework.DALI
 
                     break;
                 }
-
-
                 // Retry every 60 ms
                 Thread.Sleep(60);
-            }
-
-         
+            }         
             rxChannel.Stop();
-
             return answerData;
         }
      
@@ -141,13 +149,19 @@ namespace nanoFramework.DALI
         private void SetBit(int Bit)
         {
             if (Bit==1)
-            {
-                txChannel.AddCommand(txPulse1);
+            {              
+                txChannel[rmtCmdIndex].Level0 = false;
+                txChannel[rmtCmdIndex].Level1 = true;
+                //txChannel[rmtCmdIndex] = txPulse1;
             }
             else
-            {
-                txChannel.AddCommand(txPulse0);
+            {             
+                txChannel[rmtCmdIndex].Level0 = true;
+                txChannel[rmtCmdIndex].Level1 = false;
+                // txChannel[rmtCmdIndex] = txPulse0;
             }
-        }     
+
+            rmtCmdIndex++;    
+        }
     }
 }

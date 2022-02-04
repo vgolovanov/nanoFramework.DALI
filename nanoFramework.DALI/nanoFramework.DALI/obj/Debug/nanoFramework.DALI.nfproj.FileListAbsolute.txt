@@ -33,3 +33,9 @@ D:\Github\github-vgolovanov\nanoFramework.DALI\nanoFramework.DALI\obj\Debug\nano
 D:\Github\github-vgolovanov\nanoFramework.DALI\nanoFramework.DALI\obj\Debug\nanoFramework.Hardware.Esp32.Rmt.xml
 D:\Github\github-vgolovanov\nanoFramework.DALI\nanoFramework.DALI\obj\Debug\nanoFramework.Runtime.Events.xml
 D:\Github\github-vgolovanov\nanoFramework.DALI\nanoFramework.DALI\obj\Debug\nanoFramework.DALI.nfproj.AssemblyReference.cache
+D:\Github\github-vgolovanov\nanoFramework.DALI\nanoFramework.DALI\bin\Debug\System.Device.Gpio.pe
+D:\Github\github-vgolovanov\nanoFramework.DALI\nanoFramework.DALI\bin\Debug\System.Device.Gpio.pdbx
+D:\Github\github-vgolovanov\nanoFramework.DALI\nanoFramework.DALI\bin\Debug\System.Device.Gpio.dll
+D:\Github\github-vgolovanov\nanoFramework.DALI\nanoFramework.DALI\bin\Debug\System.Device.Gpio.xml
+D:\Github\github-vgolovanov\nanoFramework.DALI\nanoFramework.DALI\obj\Debug\System.Device.Gpio.dll
+D:\Github\github-vgolovanov\nanoFramework.DALI\nanoFramework.DALI\obj\Debug\System.Device.Gpio.xml
