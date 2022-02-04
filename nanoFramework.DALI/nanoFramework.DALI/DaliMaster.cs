@@ -103,10 +103,6 @@ namespace nanoFramework.DALI
             rxChannel.Start(true);
             txChannel.Send(true);
 
-         //   Thread.Sleep(60);
-
-            
-
             for (int count = 0; count < 5; count++)
 			{
                 response = rxChannel.GetAllItems();
