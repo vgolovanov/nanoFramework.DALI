@@ -66,7 +66,7 @@ namespace nanoFramework.DALI
             rxChannel = new ReceiverChannel(rxPin);
             rxChannel.ClockDivider = 80; // 1us clock ( 80Mhz / 80 ) = 1Mhz
             rxChannel.EnableFilter(true, 10); // filter out 100Us / noise             
-            rxChannel.SetIdleThresold(1700);  // 40ms based on 1us clock
+            rxChannel.SetIdleThresold(7000);  // 40ms based on 1us clock
             rxChannel.ReceiveTimeout = new TimeSpan(0, 0, 0, 0, 60);
         }
 
@@ -91,72 +91,108 @@ namespace nanoFramework.DALI
             txChannel.Send(true);
         }
 
-        public bool TransmitQueryCommand(byte Address, byte Command, out byte Response)
+        public byte TransmitQueryCommand(byte Address, byte Command)
         {
             rmtCmdIndex = 0;
          
-            RmtCommand[] response = null;
-            
-            bool ValidResonse = false;
-            Response =0;
+            RmtCommand[] impulses = null;
+                    
             SetBit(1); //Start bit
             SetByte(Address);
             SetByte(Command);
 
             txChannel.Send(false);
             
-            Thread.Sleep(20);
+            Thread.Sleep(10);
 
             rxChannel.Start(true);
 
-            for (int count = 0; count < 5; count++)
-			{
-                response = rxChannel.GetAllItems();
-                if (response != null)
+            impulses = rxChannel.GetAllItems();
+
+            bool frameData = false;
+            int boolIndex = 0;
+            bool[] packet = new bool[18];
+            bool currentBit = 
+
+            if (impulses != null)
+            {
+                foreach (var impulse in impulses)
                 {
-                    if (response.Length != 9)                        
+                    if (!frameData)
                     {
-                        Debug.WriteLine("Wrong!" + response.Length.ToString());
-
-                        foreach ( var item in response)
+                        if (impulse.Duration0 > 5000 )
                         {
-                            Debug.Write(item.Level0.ToString());
-                            Debug.Write(item.Duration0.ToString());
-                            Debug.Write(item.Level1.ToString());
-                            Debug.Write(item.Duration1.ToString());
-                            Debug.WriteLine("");
+                            frameData = true;                           
                         }
-
-                        Response =0;
-
-                        ValidResonse = false;
-                    }
-                    else
-                    {
-                        int respValue = 0;
-
-                        for (byte i=1; i < 9; i++)
+                        else if (impulse.Duration1 > 5000)
                         {
-                            if (response[i].Level0 == false || response[i].Level1 == true)
-                            {
-                                respValue = respValue | (1 << (i - 1));
-                            }                                
+                            frameData = true;
+                            continue;
                         }
-
-                        Response =(byte) respValue;
-
-                        ValidResonse = true;
+                        else
+                        {
+                            continue;
+                        }                        
                     }
 
-                   // break;
+
+
+                    var Quotient1 = impulse.Duration0 / 390;
+                    var Quotient2 = impulse.Duration1 / 390;
+
+                    if (Quotient1 == 1)
+                    {
+                        packet[boolIndex] = impulse.Level0;
+                        boolIndex++;
+                    }
+                    else if (Quotient1 == 2)
+                    {
+                        packet[boolIndex] = impulse.Level0;
+                        boolIndex++;
+                        packet[boolIndex] = impulse.Level0;
+                        boolIndex++;
+                    }
+
+                    if (Quotient2 == 1)
+                    {
+                        packet[boolIndex] = impulse.Level1;
+                        boolIndex++;
+                    }
+                    else if (Quotient2 == 2)
+                    {
+                        packet[boolIndex] = impulse.Level1;
+                        boolIndex++;
+                        packet[boolIndex] = impulse.Level1;
+                        boolIndex++;
+                    }
+                }                
+            }
+
+            int respValue = 0;
+
+            byte i = 0;
+            boolIndex = 2; // Skip start bit.
+        
+            while (boolIndex < 18)
+            {
+                if(packet[boolIndex]==false && packet[boolIndex + 1] == true)
+                {
+                    respValue = respValue | (1 << i);
                 }
-                // Retry every 60 ms
-                Thread.Sleep(60);
-            }         
-           
+                else
+                {
+                   // respValue = respValue | (0 << i);
+                    respValue=(byte)(respValue & ~(1 << i));
+                }
+
+                boolIndex++;            
+                boolIndex++;
+                i++;
+            }
+                    
             rxChannel.Stop();
          
-            return ValidResonse;
+            return (byte)respValue;
         }
      
         private void SetByte(byte Packet)
