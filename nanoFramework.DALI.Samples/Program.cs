@@ -27,7 +27,7 @@ namespace nanoFramework.DALI.Samples
             daliMaster.TransmitContolCommand(DALICommands.DALI_CMD_SEARCHADDRM, 255);
             daliMaster.TransmitContolCommand(DALICommands.DALI_CMD_SEARCHADDRL, 255);
 
-            daliMaster.TransmitContolCommand(DALICommands.DALI_CMD_COMPARE, 0);            
+            daliMaster.TransmitQueryCommand(DALICommands.DALI_CMD_COMPARE, 0);            
         }        
     }
 }

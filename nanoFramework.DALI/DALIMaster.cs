@@ -40,7 +40,11 @@ namespace nanoFramework.DALI
             txPulse1 = new RmtCommand(416, false, 416, true);
             txPulse0 = new RmtCommand(416, true, 416, false);
 
+            //txPulse1 = new RmtCommand(395, false, 440, true);
+            //txPulse0 = new RmtCommand(440, true, 395, false);
+
             SetTxChannel();
+            SetRxChannel();
         }
 
         private void SetTxChannel()
@@ -61,8 +65,8 @@ namespace nanoFramework.DALI
         {
             rxChannel = new ReceiverChannel(rxPin);
             rxChannel.ClockDivider = 80; // 1us clock ( 80Mhz / 80 ) = 1Mhz
-          //  rxChannel.EnableFilter(true, 100); // filter out 100Us / noise 
-        //    rxChannel.SetIdleThresold(400);  // 40ms based on 1us clock
+            rxChannel.EnableFilter(true, 10); // filter out 100Us / noise             
+            rxChannel.SetIdleThresold(1700);  // 40ms based on 1us clock
             rxChannel.ReceiveTimeout = new TimeSpan(0, 0, 0, 0, 60);
         }
 
@@ -73,8 +77,6 @@ namespace nanoFramework.DALI
             SetByte(Address);
             SetByte(Command);        
             txChannel.Send(true);
-
-
         }
 
         public void TransmitConfigurationCommand(byte Address, byte Command)
@@ -95,13 +97,16 @@ namespace nanoFramework.DALI
             byte answerData = 0;     
             RmtCommand[] response = null;
 
-            SetRxChannel();
+    //        SetRxChannel();
             SetBit(1); //Start bit
             SetByte(Address);
             SetByte(Command);
 
+            txChannel.Send(false);
+            
+         //   Thread.Sleep(5);
+
             rxChannel.Start(true);
-            txChannel.Send(true);
 
             for (int count = 0; count < 5; count++)
 			{
@@ -110,7 +115,16 @@ namespace nanoFramework.DALI
                 {
                     if (response.Length != 9)                        
                     {
-                        Debug.WriteLine("Wrong!");
+                        Debug.WriteLine("Wrong!" + response.Length.ToString());
+
+                        foreach ( var item in response)
+                        {
+                            Debug.Write(item.Level0.ToString());
+                            Debug.Write(item.Duration0.ToString());
+                            Debug.Write(item.Level1.ToString());
+                            Debug.Write(item.Duration1.ToString());
+                            Debug.WriteLine("");
+                        }
                     }
                     else
                     {
@@ -125,7 +139,7 @@ namespace nanoFramework.DALI
                         }                                              
                     }
 
-                    break;
+                   // break;
                 }
                 // Retry every 60 ms
                 Thread.Sleep(60);
