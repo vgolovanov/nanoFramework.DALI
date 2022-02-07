@@ -91,20 +91,21 @@ namespace nanoFramework.DALI
             txChannel.Send(true);
         }
 
-        public byte TransmitQueryCommand(byte Address, byte Command)
+        public bool TransmitQueryCommand(byte Address, byte Command, out byte Response)
         {
             rmtCmdIndex = 0;
-            byte answerData = 0;     
+         
             RmtCommand[] response = null;
-
-    //        SetRxChannel();
+            
+            bool ValidResonse = false;
+            Response =0;
             SetBit(1); //Start bit
             SetByte(Address);
             SetByte(Command);
 
             txChannel.Send(false);
             
-         //   Thread.Sleep(5);
+            Thread.Sleep(20);
 
             rxChannel.Start(true);
 
@@ -125,18 +126,26 @@ namespace nanoFramework.DALI
                             Debug.Write(item.Duration1.ToString());
                             Debug.WriteLine("");
                         }
+
+                        Response =0;
+
+                        ValidResonse = false;
                     }
                     else
                     {
                         int respValue = 0;
 
-                        for(byte i=1; i < 9; i++)
+                        for (byte i=1; i < 9; i++)
                         {
                             if (response[i].Level0 == false || response[i].Level1 == true)
                             {
                                 respValue = respValue | (1 << (i - 1));
                             }                                
-                        }                                              
+                        }
+
+                        Response =(byte) respValue;
+
+                        ValidResonse = true;
                     }
 
                    // break;
@@ -144,8 +153,10 @@ namespace nanoFramework.DALI
                 // Retry every 60 ms
                 Thread.Sleep(60);
             }         
+           
             rxChannel.Stop();
-            return answerData;
+         
+            return ValidResonse;
         }
      
         private void SetByte(byte Packet)
