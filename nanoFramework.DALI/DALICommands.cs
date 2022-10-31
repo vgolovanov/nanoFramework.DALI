@@ -4,9 +4,6 @@ namespace nanoFramework.DALI
 {
     public static class DALICommands
     {
-        public const byte DALI_Address_Broadcast = 0xFF;
-        public const byte DALI_Address_BroadcastDirectPower = 0xFE;
-
         public const byte DALI_CMD_OFF = 0x00;
         public const byte DALI_CMD_UP = 0x01;
         public const byte DALI_CMD_DOWN = 0x02;
@@ -25,7 +22,7 @@ namespace nanoFramework.DALI
         */
         public const byte DALI_CMD_RESET = 32;
         public const byte DALI_CMD_STORE_LEVEL = 33;
-        public const byte DALI_CMD_STORE_DTR_SHORT_ADDRESS = 128;
+        public const byte DALI_CMD_STORE_DTR_SA = 128;
 
         /*
         * ->DALI query commands (144 ... 255)
@@ -33,11 +30,8 @@ namespace nanoFramework.DALI
         */
         public const byte DALI_CMD_QUERY_STATUS = 144;
         public const byte DALI_CMD_QUERY_BALLAST = 145;
-        public const byte DALI_CMD_QUERY_LAMP_FAILURE = 146;
-        public const byte DALI_CMD_QUERY_LAMP_POWER_ON = 147;
-        public const byte DALI_CMD_QUERY_LIMIT_ERROR = 148;
-        public const byte DALI_CMD_QUERY_RESET_STATE = 149;
-        public const byte DALI_CMD_QUERY_MISS_SHORT_ADDRESS = 150;
+        public const byte DALI_CMD_QUERY_FAIL = 146;
+        public const byte DALI_CMD_QUERY_MISS_SA = 150;
         public const byte DALI_CMD_QUERY_DTR = 152;
         public const byte DALI_CMD_QUERY_PHY_MIN = 154;
         public const byte DALI_CMD_QUERY_LEVEL = 160;
@@ -58,25 +52,17 @@ namespace nanoFramework.DALI
         */
         public const byte DALI_CMD_TERMINATE = 161;
         public const byte DALI_CMD_STORE_DTR = 163;
-
         public const byte DALI_CMD_INITIALISE = 165;
         public const byte DALI_CMD_RANDOMISE = 167;
         public const byte DALI_CMD_COMPARE = 169;
         public const byte DALI_CMD_WITHDRAW = 171;
 
-        public const byte DALI_CMD_PING = 173;
-        
         public const byte DALI_CMD_SEARCHADDRH = 177;
         public const byte DALI_CMD_SEARCHADDRM = 179;
         public const byte DALI_CMD_SEARCHADDRL = 181;
 
-        public const byte DALI_CMD_PROG_SHORTADDRESS = 183;
-        public const byte DALI_CMD_VERIFY_SHORTADDRESS = 185;
-        public const byte DALI_CMD_QUERY_SHORTADDRESS = 187;
-
-
-        public const byte DALI_CMD_QUERY_RANDOM_ADDRH = 194;
-        public const byte DALI_CMD_QUERY_RANDOM_ADDRM = 195;
-        public const byte DALI_CMD_QUERY_RANDOM_ADDRL = 196;
+        public const byte DALI_CMD_PROG_SA = 183;
+        public const byte DALI_CMD_VERIFY_SA = 185;
+        public const byte DALI_CMD_QUERY_SA = 187;
     }
 }
